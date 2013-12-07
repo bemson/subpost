@@ -1,0 +1,27 @@
+<html>
+<head>
+	<title>Bird</title>
+	<link rel="stylesheet" type="text/css" href="css/bird.css" />
+	<script src="../src/subpost.js"></script>
+	<script src="js/util.js"></script>
+</head>
+<body>
+	<button id="addBird"><span>Add Bird</span></button>
+	<pre>
+	</pre>
+<script src="js/bird.js"></script>
+<script type="text/javascript">
+var addBirdBtn = document.getElementById('addBird');
+
+// bind gui
+bind(addBirdBtn, 'click', function (e) {
+	if (e && e.preventDefault) {
+		e.preventDefault();
+	}
+	// "flockName" is defined in bird.js
+	launchBirdWindow(flockName);
+	return false;
+});
+</script>
+</body>
+</html>

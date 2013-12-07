@@ -1,0 +1,160 @@
+<html>
+<head>
+	<title>SubPost Demo: Flock of Windows</title>
+	<link rel="stylesheet" type="text/css" href="css/base.css"></link>
+	<style type="text/css">
+		.flock-dash {
+			display: inline-block;
+		}
+	</style>
+	<script src="../src/subpost.js"></script>
+	<script src="js/util.js"></script>
+</head>
+<body>
+	<h1><emphasis class="theme-text">SubPost Demo:</emphasis> Flock of Windows</h1>
+	<p></p>
+	<button id="addFlockBtn">Add Flock</button>
+	<div id="flockStage"></div>
+<script>
+var
+	master = subpost.host('flocks'),
+	flockTpl = document.createElement('div'),
+	flockStage = document.getElementById('flockStage'),
+	addFlockBtn = document.getElementById('addFlockBtn'),
+	flockId = 0
+;
+
+// define template
+flockTpl.className = 'flock-dash';
+flockTpl.innerHTML = '<h4></h4><p>window count: <b></b></p><a class="add" href="#">Add Bird</a><a class="remove" href="#">Remove</a>';
+
+// rig dom
+bind(addFlockBtn, 'click', function (e) {
+	if (e && e.preventDefault) {
+		e.preventDefault();
+	}
+	addFlock();
+	return false;
+});
+
+// rig window
+bind(window, 'unload', function () {
+	var
+		hosts = subpost.hosts,
+		host,
+		hostId
+	;
+	for (hostId in hosts) {
+		host = hosts[hostId];
+		if (hosts.hasOwnProperty(hostId) && host.destroy) {
+			host.destroy();
+		}
+	}
+});
+
+function addFlock() {
+	var
+		flockName = 'flock-' + flockId++,
+		flock = subpost.host(flockName),
+		birds = flock.conns,
+		lastLeadRegion = 0,
+		dom = flockTpl.cloneNode(true)
+	;
+
+	// append methods and properties
+	mix(flock, {
+		count: 0,
+		el: dom,
+		removeBtn: dom.getElementsByClassName('remove')[0],
+		addBtn: dom.getElementsByClassName('add')[0],
+		destroy: host_destroy,
+		adjustCountBy: host_adjustCountBy,
+		countEl: dom.getElementsByTagName('b')[0],
+		addWindow: host_addWindow
+	});
+
+	flock
+		.on('::connect', function (client) {
+			this.adjustCountBy(1);
+			client.send('registered', this.count);
+			if (lastLeadRegion) {
+				this.emit('lead', lastLeadRegion);
+			}
+		})
+		.on('::disconnect', function () {
+			this.adjustCountBy(-1);
+		})
+		// receive new region of lead
+		.on('lead', function (msg, region) {
+			lastLeadRegion = region;
+			// relay region change to all clients
+			this.emit('lead', lastLeadRegion);
+		})
+		// relay stop message - when last leading window is closed
+		.on('stop', function () {
+			lastLeadRegion = 0;
+			this.emit('stop');
+		})
+	;
+	// define closured handlers
+	flock.onAddBtnClick = function (e) {
+		if (e && e.preventDefault) {
+			e.preventDefault();
+		}
+		flock.addWindow();
+		return false;
+	};
+	flock.onRemoveBtnClick = function (e) {
+		if (e && e.preventDefault) {
+			e.preventDefault();
+		}
+		flock.destroy();
+		return false;
+	};
+
+	// update gui texts
+	setText(dom.getElementsByTagName('h4')[0], 'Flock #' + flockId);
+	flock.adjustCountBy();
+
+	// rig dom
+	bind(flock.addBtn, 'click', flock.onAddBtnClick);
+	bind(flock.removeBtn, 'click', flock.onRemoveBtnClick);
+
+	// show in page
+	flockStage.appendChild(dom);
+
+	// add initial flock of birds
+	flock.addWindow();
+	setTimeout(function () {flock.addWindow()},0);
+	setTimeout(function () {flock.addWindow()},0);
+	setTimeout(function () {flock.addWindow()},0);
+
+}
+
+function host_destroy() {
+	var flock = this;
+
+	// remove gui
+	flock.el.parentNode.removeChild(flock.el);
+	// unbind gui
+	unbind(flock.addBtn, 'click', flock.onAddBtnClick);
+	unbind(flock.removeBtn, 'click', flock.onRemoveBtnClick);	
+	// close all clients
+	flock.emit('close');
+	// unbind and discard host
+	flock.off();
+	delete subpost.hosts[flock.id];
+}
+
+// method added to subpost hosts
+function host_adjustCountBy(amount) {
+	var flock = this;
+	setText(flock.countEl, flock.count += (amount || 0));
+}
+
+function host_addWindow() {
+	launchBirdWindow(this.id);
+}
+</script>
+</body>
+</html>

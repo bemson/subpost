@@ -1,0 +1,24 @@
+* {
+	font-family: sans-serif;
+}
+
+body.behind {
+	background: #ccc;
+}
+
+#birdLink {
+	display: block;
+	border-radius: .5em;
+	border: .3em outset gray;
+	padding: .3em;
+	font-size: 1.5em;
+	width: 30%;
+	margin: 0 auto;
+	text-decoration: none;
+	background: darkgray;
+	color: #fff;
+}
+
+#birdlink:hover {
+	border-style: inset;
+}

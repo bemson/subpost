@@ -1,0 +1,22 @@
+<html>
+<head>
+	<title>SubPost Demos</title>
+	<link rel="stylesheet" type="text/css" href="css/base.css"></link>
+	<script src="js/util.js"></script>
+</head>
+<body>
+	<h1><emphasis>SubPost Demos</emphasis></h1>
+	<h2>Flock of Windows</h2>
+	<p>An ode to After Dark software's iconic Flying Toaster screenSaver.</p>
+	<button id="launchFlockDemo">Start Demo</button>
+<script type="text/javascript">
+bind(document.getElementById('launchFlockDemo'), 'click', function (e) {
+	if (e && e.preventDefault) {
+		e.preventDefault();
+	}
+	window.open('flock_demo.html', FLOCK_MASTER);
+	return false;
+});
+</script>
+</body>
+</html>

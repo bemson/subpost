@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SubPost tests</title>
+</head>
+<body>
+  <script src="subpost.js"></script>
+  <script src="../node_modules/backbone/node_modules/underscore/underscore.js"></script>
+  <script src="../node_modules/backbone/backbone.js"></script>
+  <script>
+  _.extend(subpost.config.emitterFn, Backbone.Events);
+  subpost.config.emitterFn.fire = subpost.config.emitterFn.trigger;
+  </script>
+  <script>
+	client = subpost.client('myApp', window);
+	client
+		.on('all', function () {
+			console.log(arguments);
+		})
+		.on('subpost:stateChange', function (newState, oldState) {
+			console.log('client state change from', oldState, 'to', newState);
+		})
+		.on('subpost:connect', function (app) {
+			console.log('connected to app "' + app.id + '"');
+		})
+		.on('news', function (msg) {
+		  // this.getMsgMeta(arguments);
+		  console.log('#1', arguments);
+		  msg.reply('feedback', 'love');
+		})
+		.on('you', function (msg) {
+			console.log('#3', arguments);
+		})
+	;
+
+	app = subpost.app('myApp');
+	app.on('subpost:connect', function (client) {
+		console.log('client "' + client.id + '" has connected!');
+		app.emit('news', 'jo', 'bob');
+	});
+	app.on('feedback', function (msg) {
+		console.log('#2', arguments);
+		msg.reply('you', 'rock!');
+	});
+
+  </script>
+</body>
+</html>
